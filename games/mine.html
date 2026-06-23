@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 Mine Sweeper</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="bg-gray-400 flex items-center justify-center min-h-screen font-sans select-none">
+    <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+        <!-- 頂部資訊與控制-->
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl font-bold text-gray-800">掃地雷</h1>
+            <div id="status" class="text-red-500 font-bold font-mono text-lg">🚩 10</div>
+            <button onclick="init()"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded transition-colors text-sm font-bold">
+                重設
+            </button>
+        </div>
+
+        <!-- 遊戲網格-->
+        <div id="board" class="grid grid-cols-10 bg-gray-400 border border-gray-400 gap-[1px]"></div>
+
+        <!-- 遊戲訊息-->
+        <div id="msg" class="mt-4 text-center font-bold font-bold h-6 text-gray-800"></div>
+    </div>
+    <script>
+        const SIZE = 10, MINES = 10;
+        let board = [], flags = 0, gameOver = false, firstClick = true;
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const msgElement = document.getElementById('msg');
+
+        const colors = ['',
+            'text-blue-600',
+            'text-green-600',
+            'text-red-600',
+            'text-purple-600',
+            'text-red-900',
+            'text-teal-600',
+            'text-black',
+            'text-gray-600']
+
+        function placeMine(firstR, firstC) {
+            let count = 0;
+            while (count < MINES) {
+                let r = Math.floor(Math.random() * SIZE);
+                let c = Math.floor(Math.random() * SIZE);
+                if (!board[r][c].mine && (!Math.abs(r - firstR) <= 1) && (!Math.abs(c - firstC) <= 1)) {
+                    board[r][c].mine = true;
+                    count++;
+                }
+            }
+        }
+
+        function toggleFlag(r, c, cell) {
+            console.log('右鍵按下');
+            if (gameOver || board[r][c].rev) return;
+            board[r][c].flag = !board[r][c].flag;
+            cell.innerText = board[r][c].flag ? '🚩' : '';
+            flags += board[r][c].flag ? 1 : -1;
+            statusElement.innerHTML = `🚩 ${MINES - flags}`;
+        }
+
+        function getMines(r, c) {
+            let count = 0;
+            for (let i = -1; i <= 1; i++)
+                for (let j = -1; j <= 1; j++)
+                    if (board[r + i]?.[c + j]?.mine) count++;
+            return count;
+        }
+
+        function checkWin() {
+            let unrevealed = 0;
+            for (let r = 0; r < SIZE; r++)
+                for (let c = 0; c < SIZE; c++)
+                    if (!board[r][c].rev) unrevealed++;
+
+            if (unrevealed === MINES && !gameOver){
+                msgElement.innerText ='恭喜過關!🎉';
+                msgElement.className = 'mt-4 text-center font-bold text-green-600 h-6';
+                gameOver = true;
+            }
+        }
+
+        function clickCell(r, c, cell) {
+            console.log('左鍵按下');
+            if (gameOver || board[r][c].flag || board[r][c].rev) return;
+
+            if (firstClick) {
+                placeMine(r, c);
+                firstClick = false;
+            }
+
+            board[r][c].rev = true;
+            cell.classList.replace('bg-gray-200', 'bg-white');
+            cell.classList.remove('hover:bg-gray-300');
+
+            //踩到地雷
+            if (board[r][c].mine) {
+                cell.innerText = '💣';
+                cell.classList.add('bg-red-500');
+                msgElement.innerText = '遊戲結束!💥';
+                msgElement.className = 'mt-4 text-center font-bold text-red-600 h-6';
+                gameOver = true;
+                return;
+            }
+
+            //計算周圍的地雷數目並展開cell
+            let mines = getMines(r, c);
+            console.log(mines);
+            if (mines > 0) {
+                cell.innerText = mines;
+                cell.classList.add(colors[mines]);
+            }
+            else {
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        let nr = r + i;
+                        let nc = c + j;
+                        if (board[nr]?.[nc] && !board[nr][nc].rev) {
+                            clickCell(nr, nc, boardElement.children[nr * SIZE + nc]);
+                        }
+                    }
+                }
+            }
+            checkWin();
+        }
+
+        function init() {
+            console.log('遊戲開始');
+            boardElement.innerText = '';
+            board = Array.from({ length: SIZE },
+                () => Array.from(
+                    { length: SIZE },
+                    () => ({ mine: false, rev: false, flag: false })
+                )
+            )
+            flags = 0;
+            gameOver = false;
+            firstClick = true;
+            statusElement.innerText = `🚩 ${MINES}`;
+            msgElement.innerText = '';
+
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 flex items-center justify-center font-bold text-lg cursor-pointer hover:bg-gray-300';
+                    cell.oncontextmenu = (e) => {
+                        e.preventDefault();
+                        //右鍵插旗
+                        toggleFlag(r, c, cell);
+                    };
+                    cell.onclick = () => clickCell(r, c, cell); //左鍵挖雷
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+        
+        init();
+    </script>
+</body>
+
+</html>

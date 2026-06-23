@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pihai0202 的個人網站</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Profile Card Container -->
+    <div class="profile-card">
+        <!-- Avatar -->
+        <div class="avatar-container">
+            <div class="avatar">
+                <div class="avatar-inner">P</div>
+            </div>
+        </div>
+
+        <!-- Bio Details -->
+        <h1 class="name">Pihai0202</h1>
+        <p class="tagline">學生 / 開發者</p>
+        
+        <p class="intro">
+            歡迎來到我的個人網站！我是一位熱愛探索科技與網頁開發的學生。在這裡，您可以探索我的期末專題、GitHub 專案，或是遊玩我在課堂上製作的小遊戲作業。
+        </p>
+
+        <!-- Button Group -->
+        <div class="btn-group">
+            <!-- Button 1: 期末專題 -->
+            <a href="https://5b2g0905-sys-github-io.vercel.app/" target="_blank" rel="noopener" class="btn btn-primary" id="btn-project">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                期末專題
+            </a>
+
+            <!-- Button 2: GitHub -->
+            <a href="https://github.com/5b2g0905-sys" target="_blank" rel="noopener" class="btn btn-secondary" id="btn-github">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                </svg>
+                GitHub
+            </a>
+
+            <!-- Button 3: 課堂作業 (Opens Popup) -->
+            <button class="btn btn-accent" id="btn-homework">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="6" y1="12" x2="10" y2="12"></line>
+                    <line x1="8" y1="10" x2="8" y2="14"></line>
+                    <line x1="15" y1="13" x2="15.01" y2="13"></line>
+                    <line x1="18" y1="11" x2="18.01" y2="11"></line>
+                    <rect x="2" y="6" width="20" height="12" rx="3" ry="3"></rect>
+                </svg>
+                課堂作業
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Popup Modal Overlay -->
+    <div class="modal-overlay" id="game-modal">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <span class="modal-title">課堂作業網頁遊玩</span>
+                <button class="modal-close" id="modal-close" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tab Container -->
+            <div class="tab-container">
+                <button class="tab-btn active" data-game="mine">掃地雷 (Minesweeper)</button>
+                <button class="tab-btn" data-game="water">倒水拼圖 (Water Puzzle)</button>
+            </div>
+
+            <!-- Game Frame -->
+            <div class="game-frame-container">
+                <iframe class="game-iframe" id="game-iframe" src="games/mine.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascript Logic -->
+    <script>
+        const btnHomework = document.getElementById('btn-homework');
+        const gameModal = document.getElementById('game-modal');
+        const modalClose = document.getElementById('modal-close');
+        const gameIframe = document.getElementById('game-iframe');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+
+        // Game sources map
+        const gamesMap = {
+            mine: 'games/mine.html',
+            water: 'games/waterpuzzle/WaterPuzzle.html'
+        };
+
+        // Open Modal
+        btnHomework.addEventListener('click', () => {
+            gameModal.classList.add('active');
+            // Reset to first game (mine) when opening
+            switchGame('mine');
+        });
+
+        // Close Modal
+        modalClose.addEventListener('click', () => {
+            gameModal.classList.remove('active');
+            // Unload iframe source to stop any running audio/loops
+            gameIframe.src = 'about:blank';
+        });
+
+        // Close modal when clicking outside content area
+        gameModal.addEventListener('click', (e) => {
+            if (e.target === gameModal) {
+                gameModal.classList.remove('active');
+                gameIframe.src = 'about:blank';
+            }
+        });
+
+        // Tab Switching
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const gameKey = btn.getAttribute('data-game');
+                switchGame(gameKey);
+            });
+        });
+
+        function switchGame(key) {
+            // Update active tab button style
+            tabBtns.forEach(btn => {
+                if (btn.getAttribute('data-game') === key) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            // Update iframe src
+            gameIframe.src = gamesMap[key];
+        }
+    </script>
+</body>
+</html>
